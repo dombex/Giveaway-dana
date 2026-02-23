@@ -15,29 +15,40 @@ body{
 .card{ background:rgba(20,20,20,0.95); border-radius:16px; padding:18px; margin:12px 0; text-align:left; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .card b{ font-size:14px; color: #1e90ff; display: block; margin-bottom: 5px; }
 
-/* Countdown & Disclaimer */
+/* Timer Style */
 .timer-box { background: rgba(255, 204, 0, 0.1); border: 1px solid #ffcc00; border-radius: 12px; padding: 10px; margin-bottom: 15px; color: #ffcc00; font-weight: bold; }
 #timer { font-size: 20px; letter-spacing: 2px; }
 
+/* Status & Messages */
+.success-box {
+    display: none;
+    background: rgba(40, 167, 69, 0.15);
+    border: 1px solid #28a745;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    color: #2ecc71;
+    font-size: 13px;
+    font-weight: bold;
+    animation: fadeIn 0.5s ease;
+    text-align: center;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
 .disclaimer-box { 
-    background: rgba(30, 144, 255, 0.1); 
-    border: 1px solid #1e90ff; 
-    border-radius: 12px; 
-    padding: 15px; 
-    margin-top: 25px; 
-    margin-bottom: 40px;
-    text-align: left;
+    background: rgba(30, 144, 255, 0.1); border: 1px solid #1e90ff; border-radius: 12px; 
+    padding: 15px; margin-top: 25px; margin-bottom: 40px; text-align: left;
 }
 .disclaimer-box b { color: #1e90ff; display: block; margin-bottom: 5px; font-size: 14px; }
 .disclaimer-box p { font-size: 12px; color: #ccc; margin: 0; line-height: 1.5; }
 
 input,button{ width:100%; padding:12px; border-radius:10px; border:none; margin-top:10px; font-size:14px; box-sizing: border-box; }
 input{ background:#000; color:#fff; border:1px solid #333; }
-input:disabled{ background:#222; color:#444; }
-button{ background: linear-gradient(90deg,#1e90ff,#00bfff); color:#fff; font-weight:bold; cursor:pointer; transition: 0.3s; position: relative; }
+input:disabled{ background:#222; color:#666; }
+button{ background: linear-gradient(90deg,#1e90ff,#00bfff); color:#fff; font-weight:bold; cursor:pointer; transition: 0.3s; }
 button:disabled{ background:#333 !important; opacity: 0.6; cursor:not-allowed; }
 
-/* Animasi Spinner */
+/* Loader Spinner */
 .loader {
     width: 16px; height: 16px; border: 2px solid #fff; border-bottom-color: transparent;
     border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; margin-right: 8px;
@@ -77,13 +88,16 @@ button:disabled{ background:#333 !important; opacity: 0.6; cursor:not-allowed; }
         <div class="hp-field"><input type="text" id="bot_trap" tabindex="-1"></div>
         <input id="wallet" type="number" placeholder="Selesaikan tugas dulu..." disabled>
         <button id="walletBtn" disabled>Klaim Saldo DANA</button>
+        <div id="successMessage" class="success-box">
+            ✅ Tugas telah selesai! Kami akan mereviewnya segera. Semoga beruntung!
+        </div>
       </div>
     </div>
 
     <div class="container">
         <div class="disclaimer-box">
             <b>ℹ️ INFORMASI GIVEAWAY</b>
-            <p>Giveaway akan diundi pada tanggal <b>27 Februari 2026</b>. Pastikan kamu memenuhi syarat dan mengisi form dengan benar. Semua akun berkesempatan untuk menang. Semoga beruntung!</p>
+            <p>Giveaway akan diundi pada tanggal <b>27 Februari 2026</b>. Pastikan kamu memenuhi syarat dan mengisi form dengan benar. Semoga beruntung!</p>
         </div>
     </div>
 </div>
@@ -108,10 +122,10 @@ function startTimer(display) {
             document.getElementById("walletBtn").disabled = true;
             return;
         }
-        let hours = Math.floor(remaining / 3600);
-        let minutes = Math.floor((remaining % 3600) / 60);
-        let seconds = Math.floor(remaining % 60);
-        display.textContent = (hours<10?"0":"")+hours+":"+(minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;
+        let h = Math.floor(remaining / 3600);
+        let m = Math.floor((remaining % 3600) / 60);
+        let s = Math.floor(remaining % 60);
+        display.textContent = (h<10?"0":"")+h+":"+(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
     }, 1000);
 }
 
@@ -123,7 +137,7 @@ if(localStorage.getItem(SUBMITTED_KEY)) {
     document.body.innerHTML = `<div class="blocked-container"><h2 style="color:#ff4444;">Jangan Curang 🚫</h2><img src="IMG3.jpg" alt="Blocked" class="img-blocked"><p>Satu perangkat hanya berlaku untuk satu kali klaim.</p></div>`;
 }
 
-let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { doneTasks: [], username: "", commentLink: "", usedHashes: [] };
+let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { doneTasks: [], username: "", commentLink: "" };
 
 const tasks = [
   {id:"follow", title:"1. Username X (Wajib Verified)", link:"https://xno.click/9Lj1gP", type:"text", placeholder:"Ex: @budisatrio"},
@@ -145,7 +159,7 @@ tasks.forEach((t)=>{
     const btn = card.querySelector(".verify-btn");
     const inp = card.querySelector("input");
 
-    btn.onclick = async () => {
+    btn.onclick = () => {
         const val = inp.value.trim();
         if(t.type==="file" && inp.files.length===0) return alert("Upload bukti!");
         if(t.type!=="file" && val === "") return alert("Isi data!");
@@ -153,10 +167,9 @@ tasks.forEach((t)=>{
         if(t.id === "follow" && val.includes("http")) return alert("Hanya username saja!");
         if(t.id === "comment") {
             const match = val.match(/\/(x|twitter)\.com\/([^\/]+)\/status/);
-            if(!match || match[2].toLowerCase() !== appState.username) return alert("Username di link tidak cocok dengan Tugas 1!");
+            if(!match || match[2].toLowerCase() !== appState.username) return alert("Username di link tidak sesuai dengan Tugas 1!");
         }
 
-        // Animasi Loading
         btn.disabled = true;
         btn.innerHTML = `<span class="loader"></span> Memproses...`;
 
@@ -170,7 +183,7 @@ tasks.forEach((t)=>{
             appState.doneTasks.push(t.id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
             updateUI();
-        }, 1500); // Lama animasi 1.5 detik
+        }, 1500);
     };
     taskList.appendChild(card);
 });
@@ -184,7 +197,7 @@ function updateUI(){
     }
 }
 
-const toBase64 = file => new Promise((res, rej) => {
+const toBase64 = file => new Promise((res) => {
     const reader = new FileReader(); 
     reader.readAsDataURL(file);
     reader.onload = () => res(reader.result.split(',')[1]);
@@ -196,19 +209,30 @@ document.getElementById("walletBtn").onclick = async () => {
     if(w.length < 10) return alert("Nomor DANA salah!");
     
     const btn = document.getElementById("walletBtn");
-    btn.disabled = true; btn.innerHTML = `<span class="loader"></span> Mengirim...`;
+    const successBox = document.getElementById("successMessage");
+    
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loader"></span> Mengirim...`;
     
     try {
         const fileInput = document.querySelector('input[type="file"]');
         const imageBase64 = await toBase64(fileInput.files[0]);
+        
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ username: appState.username, wallet: w, link: appState.commentLink, image: imageBase64 })
         });
-        localStorage.setItem(SUBMITTED_KEY, "true");
-        location.reload();
+
+        successBox.style.display = "block";
+        btn.innerHTML = "Berhasil Terkirim ✓";
+        btn.style.background = "#28a745";
+
+        setTimeout(() => {
+            localStorage.setItem(SUBMITTED_KEY, "true");
+            location.reload();
+        }, 3500);
     } catch (e) {
-        alert("Gagal mengirim!");
+        alert("Gagal mengirim! Coba lagi.");
         btn.innerHTML = "Klaim Saldo DANA";
         btn.disabled = false;
     }
