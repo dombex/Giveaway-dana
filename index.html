@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Giveaway Pro - Verified Only</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{ 
+    background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url("IMG1.jpg") center/cover no-repeat fixed; 
+    font-family: 'Segoe UI', Arial, sans-serif; color:#fff; text-align:center; margin:0; padding:15px; 
+}
+.progress-container { width: 100%; background: #333; height: 6px; position: fixed; top: 0; left: 0; z-index: 1001; }
+#progressBar { width: 0%; height: 100%; background: #1e90ff; transition: 0.5s; }
+.container{ max-width:360px; margin:auto; }
+.card{ background:rgba(20,20,20,0.95); border-radius:16px; padding:18px; margin:12px 0; text-align:left; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.card b{ font-size:14px; color: #1e90ff; display: block; margin-bottom: 5px; }
+
+/* Countdown & Disclaimer Styling */
+.timer-box { background: rgba(255, 204, 0, 0.1); border: 1px solid #ffcc00; border-radius: 12px; padding: 10px; margin-bottom: 15px; color: #ffcc00; font-weight: bold; }
+#timer { font-size: 20px; letter-spacing: 2px; }
+
+.disclaimer-box { 
+    background: rgba(30, 144, 255, 0.1); 
+    border: 1px solid #1e90ff; 
+    border-radius: 12px; 
+    padding: 15px; 
+    margin-top: 25px; 
+    margin-bottom: 40px;
+    text-align: left;
+}
+.disclaimer-box b { color: #1e90ff; display: block; margin-bottom: 5px; font-size: 14px; }
+.disclaimer-box p { font-size: 12px; color: #ccc; margin: 0; line-height: 1.5; }
+
+input,button{ width:100%; padding:12px; border-radius:10px; border:none; margin-top:10px; font-size:14px; box-sizing: border-box; }
+input{ background:#000; color:#fff; border:1px solid #333; }
+input:disabled{ background:#222; color:#444; }
+button{ background: linear-gradient(90deg,#1e90ff,#00bfff); color:#fff; font-weight:bold; cursor:pointer; }
+button:disabled{ background:#333 !important; opacity: 0.4; cursor:not-allowed; }
+.header-img{ width:120px; border-radius:12px; margin:10px auto; display:block; }
+.blocked-container { padding-top: 80px; }
+.img-blocked { width: 180px; border-radius: 15px; margin: 20px auto; display: block; border: 3px solid #ff4444; }
+.hp-field { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="progress-container"><div id="progressBar"></div></div>
+
+<div id="main-app">
+    <h1>Tugas Giveaway</h1>
+    
+    <div class="container">
+        <div class="timer-box">
+            <div style="font-size: 11px; text-transform: uppercase;">Berakhir Dalam:</div>
+            <div id="timer">00:00:00</div>
+        </div>
+    </div>
+
+    <a href="https://xno.click/9Lj1gP" target="_blank">
+        <img src="IMG1.jpg" alt="Bags" class="header-img">
+    </a>
+
+    <div class="container" id="taskList"></div>
+
+    <div class="container">
+      <div class="card">
+        <b>💰 NOMOR DANA</b>
+        <div class="hp-field"><input type="text" id="bot_trap" tabindex="-1"></div>
+        <input id="wallet" type="number" placeholder="Selesaikan tugas dulu..." disabled>
+        <button id="walletBtn" disabled>Klaim Saldo DANA</button>
+        <div id="statusMsg" style="margin-top:10px; font-size:12px; font-weight:bold;"></div>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="disclaimer-box">
+            <b>ℹ️ INFORMASI GIVEAWAY</b>
+            <p>Giveaway akan diundi pada tanggal <b>27 Februari 2026</b>. Pastikan kamu memenuhi syarat dan mengisi form dengan benar. Semua akun berkesempatan untuk menang. Semoga beruntung!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz48kHVsckM7JKqZbjFPCisO0OdV6XOJUh_svTHVnsn4Op5cEgbYoVR9df02R0l0-__Bw/exec";
+const SUBMITTED_KEY = "giveaway_v1_submitted";
+const STORAGE_KEY = "giveaway_v1_state";
+
+let countdownTime = 72 * 60 * 60; 
+
+function startTimer(duration, display) {
+    let timer = duration, hours, minutes, seconds;
+    let interval = setInterval(function () {
+        hours = parseInt(timer / 3600, 10);
+        minutes = parseInt((timer % 3600) / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+        hours = hours < 10 ? "0" + hours : hours;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = hours + ":" + minutes + ":" + seconds;
+        if (--timer < 0) {
+            clearInterval(interval);
+            display.textContent = "BERAKHIR";
+            document.getElementById("walletBtn").disabled = true;
+        }
+    }, 1000);
+}
+
+window.onload = function () {
+    let display = document.querySelector('#timer');
+    startTimer(countdownTime, display);
+};
+
+if(localStorage.getItem(SUBMITTED_KEY)) {
+    document.body.innerHTML = `
+        <div class="blocked-container">
+            <h2 style="color:#ff4444;">Jangan Curang 🚫</h2>
+            <img src="IMG3.jpg" alt="Blocked" class="img-blocked">
+            <p>Satu perangkat hanya berlaku untuk satu kali klaim.</p>
+        </div>`;
+}
+
+let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { doneTasks: [], username: "", commentLink: "", usedHashes: [] };
+
+const tasks = [
+  {id:"follow", title:"1. Username X (Wajib Verified)", link:"https://xno.click/9Lj1gP", type:"text", placeholder:"Ex: @budisatrio"},
+  {id:"followProof", title:"2. Bukti Screenshot Follow dan Notifikasi", type:"file"},
+  {id:"like", title:"3. Screenshot Like & RT Pinned Post", type:"file"},
+  {id:"comment", title:"4. Link Postingan Komentar Pinned Post", link:"https://xno.click/RRG2z2", type:"url", placeholder:"https://x.com/.../status/..."}
+];
+
+const taskList = document.getElementById("taskList");
+
+tasks.forEach((t)=>{
+    const isDone = appState.doneTasks.includes(t.id);
+    const card = document.createElement("div");
+    card.className="card";
+    let inputHTML = t.type==="file" ? `<input type="file" accept="image/*" ${isDone?'disabled':''}>` : `<input value="${t.id==='follow'?appState.username:''}" placeholder="${t.placeholder||''}" ${isDone?'disabled':''}>`;
+    
+    card.innerHTML = `<b>${t.title}</b>${t.link ? `<a href="${t.link}" target="_blank" style="font-size:11px; color:#00bfff;">KLIK TUGAS ↗</a>` : ''}${inputHTML}<button class="verify-btn" ${isDone?'disabled style="background:#28a745"':''}>${isDone ? 'Berhasil ✓' : 'Verifikasi'}</button>`;
+    
+    const btn = card.querySelector(".verify-btn");
+    const inp = card.querySelector("input");
+
+    btn.onclick = () => {
+        const val = inp.value.trim();
+        if(t.type==="file" && inp.files.length===0) return alert("Upload bukti!");
+        if(t.type!=="file" && val === "") return alert("Isi data!");
+        
+        if(t.type === "file") {
+            const f = inp.files[0];
+            const hash = f.name + f.size;
+            if(appState.usedHashes.includes(hash)) return alert("File sudah digunakan!");
+            appState.usedHashes.push(hash);
+        }
+
+        if(t.id === "follow") {
+            if(val.includes("http")) return alert("Hanya username saja!");
+            const confirmV = confirm("Apakah akun @"+val.replace('@','')+" benar-benar sudah Verified (Centang Biru)? Jika tidak, klaim akan hangus.");
+            if(!confirmV) return;
+            appState.username = val.replace('@', '').toLowerCase();
+        }
+
+        if(t.id === "comment") {
+            const match = val.match(/\/(x|twitter)\.com\/([^\/]+)\/status/);
+            if(!match || match[2].toLowerCase() !== appState.username) return alert("Username tidak cocok!");
+            appState.commentLink = val;
+        }
+
+        btn.disabled = true; btn.innerText = "Berhasil ✓"; btn.style.background = "#28a745"; inp.disabled = true;
+        appState.doneTasks.push(t.id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        updateUI();
+    };
+    taskList.appendChild(card);
+});
+
+function updateUI(){
+    const doneCount = appState.doneTasks.length;
+    document.getElementById("progressBar").style.width = (doneCount / tasks.length) * 100 + "%";
+    if(doneCount === tasks.length && document.getElementById("timer").textContent !== "BERAKHIR"){ 
+        document.getElementById("wallet").disabled = false; 
+        document.getElementById("walletBtn").disabled = false; 
+    }
+}
+
+const toBase64 = file => new Promise((res, rej) => {
+    const reader = new FileReader(); 
+    reader.readAsDataURL(file);
+    reader.onload = () => res(reader.result.split(',')[1]);
+});
+
+document.getElementById("walletBtn").onclick = async () => {
+    if(document.getElementById("bot_trap").value !== "") return;
+    const w = document.getElementById("wallet").value;
+    if(w.length < 10) return alert("Nomor DANA salah!");
+    
+    const btn = document.getElementById("walletBtn");
+    btn.disabled = true; btn.innerText = "Mengirim...";
+    
+    try {
+        const fileInput = document.querySelector('input[type="file"]');
+        const imageBase64 = await toBase64(fileInput.files[0]);
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ username: appState.username, wallet: w, link: appState.commentLink, image: imageBase64 })
+        });
+        localStorage.setItem(SUBMITTED_KEY, "true");
+        location.reload();
+    } catch (e) {
+        alert("Gagal mengirim!");
+        btn.disabled = false;
+    }
+};
+
+updateUI();
+</script>
+</body>
+</html>
