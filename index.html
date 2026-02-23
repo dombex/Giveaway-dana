@@ -15,7 +15,7 @@ body{
 .card{ background:rgba(20,20,20,0.95); border-radius:16px; padding:18px; margin:12px 0; text-align:left; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .card b{ font-size:14px; color: #1e90ff; display: block; margin-bottom: 5px; }
 
-/* Countdown & Disclaimer Styling */
+/* Countdown & Disclaimer */
 .timer-box { background: rgba(255, 204, 0, 0.1); border: 1px solid #ffcc00; border-radius: 12px; padding: 10px; margin-bottom: 15px; color: #ffcc00; font-weight: bold; }
 #timer { font-size: 20px; letter-spacing: 2px; }
 
@@ -34,8 +34,17 @@ body{
 input,button{ width:100%; padding:12px; border-radius:10px; border:none; margin-top:10px; font-size:14px; box-sizing: border-box; }
 input{ background:#000; color:#fff; border:1px solid #333; }
 input:disabled{ background:#222; color:#444; }
-button{ background: linear-gradient(90deg,#1e90ff,#00bfff); color:#fff; font-weight:bold; cursor:pointer; }
-button:disabled{ background:#333 !important; opacity: 0.4; cursor:not-allowed; }
+button{ background: linear-gradient(90deg,#1e90ff,#00bfff); color:#fff; font-weight:bold; cursor:pointer; transition: 0.3s; position: relative; }
+button:disabled{ background:#333 !important; opacity: 0.6; cursor:not-allowed; }
+
+/* Animasi Spinner */
+.loader {
+    width: 16px; height: 16px; border: 2px solid #fff; border-bottom-color: transparent;
+    border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; margin-right: 8px;
+    vertical-align: middle;
+}
+@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
 .header-img{ width:120px; border-radius:12px; margin:10px auto; display:block; }
 .blocked-container { padding-top: 80px; }
 .img-blocked { width: 180px; border-radius: 15px; margin: 20px auto; display: block; border: 3px solid #ff4444; }
@@ -68,7 +77,6 @@ button:disabled{ background:#333 !important; opacity: 0.4; cursor:not-allowed; }
         <div class="hp-field"><input type="text" id="bot_trap" tabindex="-1"></div>
         <input id="wallet" type="number" placeholder="Selesaikan tugas dulu..." disabled>
         <button id="walletBtn" disabled>Klaim Saldo DANA</button>
-        <div id="statusMsg" style="margin-top:10px; font-size:12px; font-weight:bold;"></div>
       </div>
     </div>
 
@@ -84,64 +92,44 @@ button:disabled{ background:#333 !important; opacity: 0.4; cursor:not-allowed; }
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz48kHVsckM7JKqZbjFPCisO0OdV6XOJUh_svTHVnsn4Op5cEgbYoVR9df02R0l0-__Bw/exec";
 const SUBMITTED_KEY = "giveaway_v1_submitted";
 const STORAGE_KEY = "giveaway_v1_state";
-
-// Nama kunci untuk menyimpan waktu di memori browser
 const TIMER_END_KEY = "giveaway_timer_end";
 
 function startTimer(display) {
     let endTime = localStorage.getItem(TIMER_END_KEY);
-
-    // Jika belum ada waktu target, buat baru (72 jam dari sekarang)
     if (!endTime) {
         endTime = Math.floor(Date.now() / 1000) + (72 * 60 * 60);
         localStorage.setItem(TIMER_END_KEY, endTime);
     }
-
-    let interval = setInterval(function () {
+    setInterval(function () {
         let now = Math.floor(Date.now() / 1000);
         let remaining = endTime - now;
-
         if (remaining <= 0) {
-            clearInterval(interval);
             display.textContent = "BERAKHIR";
             document.getElementById("walletBtn").disabled = true;
             return;
         }
-
-        let hours = parseInt(remaining / 3600, 10);
-        let minutes = parseInt((remaining % 3600) / 60, 10);
-        let seconds = parseInt(remaining % 60, 10);
-
-        hours = hours < 10 ? "0" + hours : hours;
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-
-        display.textContent = hours + ":" + minutes + ":" + seconds;
+        let hours = Math.floor(remaining / 3600);
+        let minutes = Math.floor((remaining % 3600) / 60);
+        let seconds = Math.floor(remaining % 60);
+        display.textContent = (hours<10?"0":"")+hours+":"+(minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;
     }, 1000);
 }
 
 window.onload = function () {
-    let display = document.querySelector('#timer');
-    startTimer(display); // Jalankan fungsi timer baru
+    startTimer(document.querySelector('#timer'));
 };
 
-
 if(localStorage.getItem(SUBMITTED_KEY)) {
-    document.body.innerHTML = `
-        <div class="blocked-container">
-            <h2 style="color:#ff4444;">Jangan Curang 🚫</h2>
-            <img src="IMG3.jpg" alt="Blocked" class="img-blocked">
-            <p>Satu perangkat hanya berlaku untuk satu kali klaim.</p>
-        </div>`;
+    document.body.innerHTML = `<div class="blocked-container"><h2 style="color:#ff4444;">Jangan Curang 🚫</h2><img src="IMG3.jpg" alt="Blocked" class="img-blocked"><p>Satu perangkat hanya berlaku untuk satu kali klaim.</p></div>`;
 }
 
 let appState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { doneTasks: [], username: "", commentLink: "", usedHashes: [] };
 
 const tasks = [
   {id:"follow", title:"1. Username X (Wajib Verified)", link:"https://xno.click/9Lj1gP", type:"text", placeholder:"Ex: @budisatrio"},
-  {id:"followProof", title:"2. Bukti Screenshot Follow dan Notifikasi", type:"file"},
-  {id:"like", title:"3. Screenshot Like & RT Pinned Post", type:"file"},
-  {id:"comment", title:"4. Link Postingan Komentar Pinned Post", link:"https://xno.click/RRG2z2", type:"url", placeholder:"https://x.com/.../status/..."}
+  {id:"followProof", title:"2. Screenshot Follow & Notif", type:"file"},
+  {id:"like", title:"3. Screenshot Like & RT Pinned", type:"file"},
+  {id:"comment", title:"4. Link Komentar Pinned Post", link:"https://xno.click/RRG2z2", type:"url", placeholder:"https://x.com/.../status/..."}
 ];
 
 const taskList = document.getElementById("taskList");
@@ -150,47 +138,39 @@ tasks.forEach((t)=>{
     const isDone = appState.doneTasks.includes(t.id);
     const card = document.createElement("div");
     card.className="card";
-    let inputHTML = t.type==="file" ? `<input type="file" accept="image/*" ${isDone?'disabled':''}>` : `<input value="${t.id==='follow'?appState.username:''}" placeholder="${t.placeholder||''}" ${isDone?'disabled':''}>`;
+    let inputHTML = t.type==="file" ? `<input type="file" accept="image/*" ${isDone?'disabled':''}>` : `<input value="${t.id==='follow'?appState.username:(t.id==='comment'?appState.commentLink:'')}" placeholder="${t.placeholder||''}" ${isDone?'disabled':''}>`;
     
     card.innerHTML = `<b>${t.title}</b>${t.link ? `<a href="${t.link}" target="_blank" style="font-size:11px; color:#00bfff;">KLIK TUGAS ↗</a>` : ''}${inputHTML}<button class="verify-btn" ${isDone?'disabled style="background:#28a745"':''}>${isDone ? 'Berhasil ✓' : 'Verifikasi'}</button>`;
     
     const btn = card.querySelector(".verify-btn");
     const inp = card.querySelector("input");
 
-    btn.onclick = () => {
+    btn.onclick = async () => {
         const val = inp.value.trim();
         if(t.type==="file" && inp.files.length===0) return alert("Upload bukti!");
         if(t.type!=="file" && val === "") return alert("Isi data!");
         
-        if(t.type === "file") {
-            const f = inp.files[0];
-            const hash = f.name + f.size;
-            if(appState.usedHashes.includes(hash)) return alert("File sudah digunakan!");
-            appState.usedHashes.push(hash);
-        }
-
-        if(t.id === "follow") {
-    if(val.includes("http")) return alert("Hanya username saja!");
-    // Langsung simpan username tanpa tanya lagi
-    appState.username = val.replace('@', '').toLowerCase();
-}
-
-if(t.id === "follow") {
-    if(val.includes("http")) return alert("Hanya username saja!");
-    // Langsung simpan username tanpa tanya lagi
-    appState.username = val.replace('@', '').toLowerCase();
-}
-
+        if(t.id === "follow" && val.includes("http")) return alert("Hanya username saja!");
         if(t.id === "comment") {
             const match = val.match(/\/(x|twitter)\.com\/([^\/]+)\/status/);
-            if(!match || match[2].toLowerCase() !== appState.username) return alert("Username tidak cocok!");
-            appState.commentLink = val;
+            if(!match || match[2].toLowerCase() !== appState.username) return alert("Username di link tidak cocok dengan Tugas 1!");
         }
 
-        btn.disabled = true; btn.innerText = "Berhasil ✓"; btn.style.background = "#28a745"; inp.disabled = true;
-        appState.doneTasks.push(t.id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-        updateUI();
+        // Animasi Loading
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loader"></span> Memproses...`;
+
+        setTimeout(() => {
+            if(t.id === "follow") appState.username = val.replace('@', '').toLowerCase();
+            if(t.id === "comment") appState.commentLink = val;
+            
+            btn.innerHTML = "Berhasil ✓";
+            btn.style.background = "#28a745";
+            inp.disabled = true;
+            appState.doneTasks.push(t.id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            updateUI();
+        }, 1500); // Lama animasi 1.5 detik
     };
     taskList.appendChild(card);
 });
@@ -198,7 +178,7 @@ if(t.id === "follow") {
 function updateUI(){
     const doneCount = appState.doneTasks.length;
     document.getElementById("progressBar").style.width = (doneCount / tasks.length) * 100 + "%";
-    if(doneCount === tasks.length && document.getElementById("timer").textContent !== "BERAKHIR"){ 
+    if(doneCount === tasks.length){ 
         document.getElementById("wallet").disabled = false; 
         document.getElementById("walletBtn").disabled = false; 
     }
@@ -216,7 +196,7 @@ document.getElementById("walletBtn").onclick = async () => {
     if(w.length < 10) return alert("Nomor DANA salah!");
     
     const btn = document.getElementById("walletBtn");
-    btn.disabled = true; btn.innerText = "Mengirim...";
+    btn.disabled = true; btn.innerHTML = `<span class="loader"></span> Mengirim...`;
     
     try {
         const fileInput = document.querySelector('input[type="file"]');
@@ -229,6 +209,7 @@ document.getElementById("walletBtn").onclick = async () => {
         location.reload();
     } catch (e) {
         alert("Gagal mengirim!");
+        btn.innerHTML = "Klaim Saldo DANA";
         btn.disabled = false;
     }
 };
@@ -237,5 +218,3 @@ updateUI();
 </script>
 </body>
 </html>
-
-
