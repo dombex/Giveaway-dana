@@ -170,11 +170,16 @@ tasks.forEach((t)=>{
         }
 
         if(t.id === "follow") {
-            if(val.includes("http")) return alert("Hanya username saja!");
-            const confirmV = confirm("Apakah akun @"+val.replace('@','')+" benar-benar sudah Verified (Centang Biru)? Jika tidak, klaim akan hangus.");
-            if(!confirmV) return;
-            appState.username = val.replace('@', '').toLowerCase();
-        }
+    if(val.includes("http")) return alert("Hanya username saja!");
+    // Langsung simpan username tanpa tanya lagi
+    appState.username = val.replace('@', '').toLowerCase();
+}
+
+if(t.id === "follow") {
+    if(val.includes("http")) return alert("Hanya username saja!");
+    // Langsung simpan username tanpa tanya lagi
+    appState.username = val.replace('@', '').toLowerCase();
+}
 
         if(t.id === "comment") {
             const match = val.match(/\/(x|twitter)\.com\/([^\/]+)\/status/);
@@ -232,4 +237,5 @@ updateUI();
 </script>
 </body>
 </html>
+
 
