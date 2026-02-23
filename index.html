@@ -85,30 +85,46 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz48kHVsckM7JKqZbjFP
 const SUBMITTED_KEY = "giveaway_v1_submitted";
 const STORAGE_KEY = "giveaway_v1_state";
 
-let countdownTime = 72 * 60 * 60; 
+// Nama kunci untuk menyimpan waktu di memori browser
+const TIMER_END_KEY = "giveaway_timer_end";
 
-function startTimer(duration, display) {
-    let timer = duration, hours, minutes, seconds;
+function startTimer(display) {
+    let endTime = localStorage.getItem(TIMER_END_KEY);
+
+    // Jika belum ada waktu target, buat baru (72 jam dari sekarang)
+    if (!endTime) {
+        endTime = Math.floor(Date.now() / 1000) + (72 * 60 * 60);
+        localStorage.setItem(TIMER_END_KEY, endTime);
+    }
+
     let interval = setInterval(function () {
-        hours = parseInt(timer / 3600, 10);
-        minutes = parseInt((timer % 3600) / 60, 10);
-        seconds = parseInt(timer % 60, 10);
-        hours = hours < 10 ? "0" + hours : hours;
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-        display.textContent = hours + ":" + minutes + ":" + seconds;
-        if (--timer < 0) {
+        let now = Math.floor(Date.now() / 1000);
+        let remaining = endTime - now;
+
+        if (remaining <= 0) {
             clearInterval(interval);
             display.textContent = "BERAKHIR";
             document.getElementById("walletBtn").disabled = true;
+            return;
         }
+
+        let hours = parseInt(remaining / 3600, 10);
+        let minutes = parseInt((remaining % 3600) / 60, 10);
+        let seconds = parseInt(remaining % 60, 10);
+
+        hours = hours < 10 ? "0" + hours : hours;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = hours + ":" + minutes + ":" + seconds;
     }, 1000);
 }
 
 window.onload = function () {
     let display = document.querySelector('#timer');
-    startTimer(countdownTime, display);
+    startTimer(display); // Jalankan fungsi timer baru
 };
+
 
 if(localStorage.getItem(SUBMITTED_KEY)) {
     document.body.innerHTML = `
@@ -216,3 +232,4 @@ updateUI();
 </script>
 </body>
 </html>
+
